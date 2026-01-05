@@ -3,9 +3,43 @@ import prisma from "@/lib/prisma";
 import { userCreateSchema } from "@/lib/validations/user";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+
+const JWT_SECRET = process.env.JWT_SECRET || "secret";
+
+function getPrismaErrorCode(error: unknown) {
+  if (typeof error === "object" && error !== null && "code" in error) {
+    const code = (error as { code?: unknown }).code;
+    if (typeof code === "string") {
+      return code;
+    }
+  }
+
+  return undefined;
+}
 
 export async function POST(request: Request) {
   try {
+    const authHeader = request.headers.get("authorization");
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as {
+        role: "ADMIN" | "STAFF";
+      };
+
+      if (decoded.role !== "ADMIN" && decoded.role !== "STAFF") {
+        return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      }
+    } catch {
+      return NextResponse.json({ message: "Invalid token" }, { status: 401 });
+    }
+
     const json = await request.json();
     const body = userCreateSchema.parse(json);
 
@@ -22,18 +56,28 @@ export async function POST(request: Request) {
         password: hashedPassword,
         role: body.role,
       },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        username: true,
+        email: true,
+        phoneNumber: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
-    // Don't return the password
-    const { password, ...userWithoutPassword } = user;
-    return NextResponse.json(userWithoutPassword, { status: 201 });
+    return NextResponse.json(user, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(error.issues, { status: 400 });
     }
 
     // Handle Prisma unique constraint error
-    if ((error as any).code === "P2002") {
+    const code = getPrismaErrorCode(error);
+    if (code === "P2002") {
       return NextResponse.json(
         { message: "User with this email or username already exists" },
         { status: 409 }
@@ -48,8 +92,28 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const authHeader = request.headers.get("authorization");
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as {
+        role: "ADMIN" | "STAFF";
+      };
+
+      if (decoded.role !== "ADMIN" && decoded.role !== "STAFF") {
+        return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      }
+    } catch {
+      return NextResponse.json({ message: "Invalid token" }, { status: 401 });
+    }
+
     const users = await prisma.user.findMany({
       select: {
         id: true,

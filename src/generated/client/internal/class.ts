@@ -22,7 +22,7 @@ const config: runtime.GetPrismaClientConfig = {
   "clientVersion": "7.2.0",
   "engineVersion": "0c8ef2ce45c83248ab3df073180d5eda9e8be7a3",
   "activeProvider": "postgresql",
-  "inlineSchema": "generator client {\n  provider        = \"prisma-client\"\n  output          = \"../src/generated/client\"\n  previewFeatures = [\"driverAdapters\"]\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nenum Role {\n  ADMIN\n  STAFF\n  USER\n}\n\nmodel User {\n  id          Int      @id @default(autoincrement())\n  firstName   String\n  lastName    String\n  username    String   @unique\n  email       String   @unique\n  phoneNumber String?\n  password    String\n  role        Role     @default(USER)\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n\n  @@map(\"users\")\n}\n",
+  "inlineSchema": "generator client {\n  provider        = \"prisma-client\"\n  output          = \"../src/generated/client\"\n  previewFeatures = [\"driverAdapters\"]\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nenum Role {\n  ADMIN\n  STAFF\n}\n\nmodel User {\n  id          Int      @id @default(autoincrement())\n  firstName   String\n  lastName    String\n  username    String   @unique\n  email       String   @unique\n  phoneNumber String?\n  password    String\n  role        Role     @default(STAFF)\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n\n  @@map(\"users\")\n}\n",
   "runtimeDataModel": {
     "models": {},
     "enums": {},
