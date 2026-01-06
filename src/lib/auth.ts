@@ -6,6 +6,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "secret";
 export type AuthUser = {
   id: number;
   role: "ADMIN" | "STAFF";
+  sessionId: number;
 };
 
 export class AuthError extends Error {
@@ -27,7 +28,33 @@ export async function getAuthUser(request: Request): Promise<AuthUser> {
   const token = authHeader.split(" ")[1];
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
+    const decoded = jwt.verify(token, JWT_SECRET) as {
+      userId: number;
+      sessionId: number;
+    };
+
+    if (typeof decoded.sessionId !== "number") {
+      throw new AuthError("Invalid token", 401);
+    }
+
+    const session = await prisma.session.findUnique({
+      where: { id: decoded.sessionId },
+      select: {
+        id: true,
+        userId: true,
+        expiresAt: true,
+        revokedAt: true,
+      },
+    });
+
+    if (
+      !session ||
+      session.userId !== decoded.userId ||
+      session.revokedAt !== null ||
+      session.expiresAt <= new Date()
+    ) {
+      throw new AuthError("Invalid token", 401);
+    }
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
@@ -44,6 +71,7 @@ export async function getAuthUser(request: Request): Promise<AuthUser> {
     return {
       id: user.id,
       role: user.role,
+      sessionId: session.id,
     };
   } catch (error) {
     if (error instanceof AuthError) {
@@ -55,4 +83,3 @@ export async function getAuthUser(request: Request): Promise<AuthUser> {
 }
 
 export { JWT_SECRET };
-

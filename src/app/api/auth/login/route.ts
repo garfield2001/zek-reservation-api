@@ -4,6 +4,7 @@ import { loginSchema } from "@/lib/validations/auth";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { randomUUID } from "crypto";
 import { JWT_SECRET } from "@/lib/auth";
 
 export async function POST(request: Request) {
@@ -33,18 +34,25 @@ export async function POST(request: Request) {
       );
     }
 
+    const refreshToken = randomUUID();
+    const sessionExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+    const session = await prisma.session.create({
+      data: {
+        userId: user.id,
+        refreshToken,
+        expiresAt: sessionExpiresAt,
+      },
+    });
+
     const payload = {
       userId: user.id,
       email: user.email,
       role: user.role,
+      sessionId: session.id,
     };
 
-    // Generate JWT
-    const token = jwt.sign(
-      payload,
-      JWT_SECRET,
-      { expiresIn: "1d" } // Token expires in 1 day
-    );
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "15m" });
 
     const userWithoutPassword = {
       id: user.id,
@@ -58,7 +66,11 @@ export async function POST(request: Request) {
       updatedAt: user.updatedAt,
     };
 
-    return NextResponse.json({ user: userWithoutPassword, token });
+    return NextResponse.json({
+      user: userWithoutPassword,
+      token,
+      refreshToken,
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(error.issues, { status: 400 });

@@ -1,10 +1,21 @@
 import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 import { getAuthUser, AuthError } from "@/lib/auth";
 
 export async function POST(request: Request) {
   try {
     try {
-      await getAuthUser(request);
+      const authUser = await getAuthUser(request);
+
+      await prisma.session.updateMany({
+        where: {
+          id: authUser.sessionId,
+          revokedAt: null,
+        },
+        data: {
+          revokedAt: new Date(),
+        },
+      });
     } catch (error) {
       if (error instanceof AuthError) {
         return NextResponse.json(
@@ -24,4 +35,3 @@ export async function POST(request: Request) {
     );
   }
 }
-
