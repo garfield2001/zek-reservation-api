@@ -3,9 +3,7 @@ import prisma from "@/lib/prisma";
 import { userCreateSchema } from "@/lib/validations/user";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "secret";
+import { getAuthUser, AuthError } from "@/lib/auth";
 
 function getPrismaErrorCode(error: unknown) {
   if (typeof error === "object" && error !== null && "code" in error) {
@@ -20,23 +18,18 @@ function getPrismaErrorCode(error: unknown) {
 
 export async function POST(request: Request) {
   try {
-    const authHeader = request.headers.get("authorization");
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
-    const token = authHeader.split(" ")[1];
-
     try {
-      const decoded = jwt.verify(token, JWT_SECRET) as {
-        role: "ADMIN" | "STAFF";
-      };
-
-      if (decoded.role !== "ADMIN" && decoded.role !== "STAFF") {
+      const authUser = await getAuthUser(request);
+      if (authUser.role !== "ADMIN") {
         return NextResponse.json({ message: "Forbidden" }, { status: 403 });
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof AuthError) {
+        return NextResponse.json(
+          { message: error.message },
+          { status: error.status }
+        );
+      }
       return NextResponse.json({ message: "Invalid token" }, { status: 401 });
     }
 
@@ -94,23 +87,18 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    const authHeader = request.headers.get("authorization");
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
-    const token = authHeader.split(" ")[1];
-
     try {
-      const decoded = jwt.verify(token, JWT_SECRET) as {
-        role: "ADMIN" | "STAFF";
-      };
-
-      if (decoded.role !== "ADMIN" && decoded.role !== "STAFF") {
+      const authUser = await getAuthUser(request);
+      if (authUser.role !== "ADMIN") {
         return NextResponse.json({ message: "Forbidden" }, { status: 403 });
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof AuthError) {
+        return NextResponse.json(
+          { message: error.message },
+          { status: error.status }
+        );
+      }
       return NextResponse.json({ message: "Invalid token" }, { status: 401 });
     }
 

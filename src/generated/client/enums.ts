@@ -15,3 +15,24 @@ export const Role = {
 } as const
 
 export type Role = (typeof Role)[keyof typeof Role]
+
+
+export const PermissionResource = {
+  USER: 'USER',
+  RESERVATION: 'RESERVATION',
+  CUSTOMER: 'CUSTOMER',
+  PAYMENT: 'PAYMENT',
+  REPORT: 'REPORT'
+} as const
+
+export type PermissionResource = (typeof PermissionResource)[keyof typeof PermissionResource]
+
+
+export const PermissionAction = {
+  CREATE: 'CREATE',
+  READ: 'READ',
+  UPDATE: 'UPDATE',
+  DELETE: 'DELETE'
+} as const
+
+export type PermissionAction = (typeof PermissionAction)[keyof typeof PermissionAction]

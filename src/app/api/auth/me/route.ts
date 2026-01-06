@@ -1,24 +1,14 @@
 import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
 import prisma from "@/lib/prisma";
-
-const JWT_SECRET = process.env.JWT_SECRET || "secret";
+import { getAuthUser, AuthError } from "@/lib/auth";
 
 export async function GET(request: Request) {
   try {
-    const authHeader = request.headers.get("authorization");
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
-    const token = authHeader.split(" ")[1];
-
     try {
-      const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
+      const authUser = await getAuthUser(request);
 
       const user = await prisma.user.findUnique({
-        where: { id: decoded.userId },
+        where: { id: authUser.id },
         select: {
           id: true,
           firstName: true,
@@ -40,7 +30,13 @@ export async function GET(request: Request) {
       }
 
       return NextResponse.json(user);
-    } catch {
+    } catch (error) {
+      if (error instanceof AuthError) {
+        return NextResponse.json(
+          { message: error.message },
+          { status: error.status }
+        );
+      }
       return NextResponse.json({ message: "Invalid token" }, { status: 401 });
     }
   } catch (error) {

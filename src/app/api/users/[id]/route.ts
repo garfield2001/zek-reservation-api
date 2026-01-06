@@ -3,14 +3,12 @@ import prisma from "@/lib/prisma";
 import { userUpdateSchema } from "@/lib/validations/user";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "secret";
+import { getAuthUser, AuthError } from "@/lib/auth";
 
 type RouteParams = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 function parseId(id: string) {
@@ -36,27 +34,23 @@ function getPrismaErrorCode(error: unknown) {
 
 export async function GET(request: Request, { params }: RouteParams) {
   try {
-    const authHeader = request.headers.get("authorization");
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
-    const token = authHeader.split(" ")[1];
-
     try {
-      const decoded = jwt.verify(token, JWT_SECRET) as {
-        role: "ADMIN" | "STAFF";
-      };
-
-      if (decoded.role !== "ADMIN" && decoded.role !== "STAFF") {
+      const authUser = await getAuthUser(request);
+      if (authUser.role !== "ADMIN") {
         return NextResponse.json({ message: "Forbidden" }, { status: 403 });
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof AuthError) {
+        return NextResponse.json(
+          { message: error.message },
+          { status: error.status }
+        );
+      }
       return NextResponse.json({ message: "Invalid token" }, { status: 401 });
     }
 
-    const id = parseId(params.id);
+    const resolvedParams = await params;
+    const id = parseId(resolvedParams.id);
 
     if (!id) {
       return NextResponse.json({ message: "Invalid user id" }, { status: 400 });
@@ -93,27 +87,23 @@ export async function GET(request: Request, { params }: RouteParams) {
 
 export async function PATCH(request: Request, { params }: RouteParams) {
   try {
-    const authHeader = request.headers.get("authorization");
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
-    const token = authHeader.split(" ")[1];
-
     try {
-      const decoded = jwt.verify(token, JWT_SECRET) as {
-        role: "ADMIN" | "STAFF";
-      };
-
-      if (decoded.role !== "ADMIN" && decoded.role !== "STAFF") {
+      const authUser = await getAuthUser(request);
+      if (authUser.role !== "ADMIN") {
         return NextResponse.json({ message: "Forbidden" }, { status: 403 });
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof AuthError) {
+        return NextResponse.json(
+          { message: error.message },
+          { status: error.status }
+        );
+      }
       return NextResponse.json({ message: "Invalid token" }, { status: 401 });
     }
 
-    const id = parseId(params.id);
+    const resolvedParams = await params;
+    const id = parseId(resolvedParams.id);
 
     if (!id) {
       return NextResponse.json({ message: "Invalid user id" }, { status: 400 });
@@ -196,27 +186,23 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
 export async function DELETE(request: Request, { params }: RouteParams) {
   try {
-    const authHeader = request.headers.get("authorization");
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
-    const token = authHeader.split(" ")[1];
-
     try {
-      const decoded = jwt.verify(token, JWT_SECRET) as {
-        role: "ADMIN" | "STAFF";
-      };
-
-      if (decoded.role !== "ADMIN") {
+      const authUser = await getAuthUser(request);
+      if (authUser.role !== "ADMIN") {
         return NextResponse.json({ message: "Forbidden" }, { status: 403 });
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof AuthError) {
+        return NextResponse.json(
+          { message: error.message },
+          { status: error.status }
+        );
+      }
       return NextResponse.json({ message: "Invalid token" }, { status: 401 });
     }
 
-    const id = parseId(params.id);
+    const resolvedParams = await params;
+    const id = parseId(resolvedParams.id);
 
     if (!id) {
       return NextResponse.json({ message: "Invalid user id" }, { status: 400 });

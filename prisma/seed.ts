@@ -1,4 +1,4 @@
-import { PrismaClient } from "../src/generated/client/client";
+import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import dotenv from "dotenv";
@@ -29,17 +29,24 @@ async function main() {
   });
 
   const staff = await prisma.user.upsert({
-    where: { email: "staff@zek-reservation.com" },
+    where: { email: "staff1@zek-reservation.com" },
     update: {},
     create: {
       firstName: "Staff",
       lastName: "Member",
-      username: "staff",
-      email: "staff@zek-reservation.com",
+      username: "staff1",
+      email: "staff1@zek-reservation.com",
       password: hashedPassword,
       role: "STAFF",
       phoneNumber: "0987654321",
     },
+  });
+
+  await prisma.permission.createMany({
+    data: [
+      // Reserved for future non-USER permissions
+    ],
+    skipDuplicates: true,
   });
 
   console.log({ admin, staff });

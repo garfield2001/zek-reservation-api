@@ -1,6 +1,5 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/client"
+  provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
 }
 
@@ -13,17 +12,45 @@ enum Role {
   STAFF
 }
 
+enum PermissionResource {
+  RESERVATION
+  CUSTOMER
+  PAYMENT
+  REPORT
+}
+
+enum PermissionAction {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+}
+
 model User {
-  id          Int      @id @default(autoincrement())
+  id          Int          @id @default(autoincrement())
   firstName   String
   lastName    String
-  username    String   @unique
-  email       String   @unique
-  phoneNumber String?
+  username    String       @unique
+  email       String       @unique
+  phoneNumber String
   password    String
-  role        Role     @default(STAFF)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  role        Role         @default(STAFF)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  permissions Permission[]
 
   @@map("users")
+}
+
+model Permission {
+  id        Int               @id @default(autoincrement())
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  resource  PermissionResource
+  action    PermissionAction
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@unique([userId, resource, action])
+
 }

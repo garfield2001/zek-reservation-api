@@ -5,7 +5,7 @@ export const userCreateSchema = z.object({
   lastName: z.string().min(1, "Last name is required"),
   username: z.string().min(3, "Username must be at least 3 characters"),
   email: z.email({ message: "Invalid email address" }),
-  phoneNumber: z.string().optional(),
+  phoneNumber: z.string().min(1, "Phone number is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   role: z.enum(["ADMIN", "STAFF"]).default("STAFF"),
 });
@@ -19,7 +19,7 @@ export const userUpdateSchema = z
       .min(3, "Username must be at least 3 characters")
       .optional(),
     email: z.email("Invalid email address").optional(),
-    phoneNumber: z.string().optional(),
+    phoneNumber: z.string().min(1, "Phone number is required").optional(),
     password: z
       .string()
       .min(6, "Password must be at least 6 characters")

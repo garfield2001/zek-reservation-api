@@ -4,8 +4,7 @@ import { loginSchema } from "@/lib/validations/auth";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "secret";
+import { JWT_SECRET } from "@/lib/auth";
 
 export async function POST(request: Request) {
   try {
