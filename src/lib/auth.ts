@@ -1,7 +1,10 @@
 import jwt from "jsonwebtoken";
 import prisma from "./prisma";
 
-const JWT_SECRET = process.env.JWT_SECRET || "secret";
+const JWT_SECRET = process.env.JWT_SECRET || "zek-secret-123";
+
+export const AUTH_SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60; // 7 Days
+export const AUTH_ACCESS_TOKEN_EXPIRES_IN_SECONDS = 15 * 60; // 15 mins
 
 export type AuthUser = {
   id: number;

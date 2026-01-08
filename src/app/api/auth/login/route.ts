@@ -5,7 +5,11 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { randomUUID } from "crypto";
-import { JWT_SECRET } from "@/lib/auth";
+import {
+  JWT_SECRET,
+  AUTH_SESSION_MAX_AGE_SECONDS,
+  AUTH_ACCESS_TOKEN_EXPIRES_IN_SECONDS,
+} from "@/lib/auth";
 
 export async function POST(request: Request) {
   try {
@@ -35,7 +39,9 @@ export async function POST(request: Request) {
     }
 
     const refreshToken = randomUUID();
-    const sessionExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const sessionExpiresAt = new Date(
+      Date.now() + AUTH_SESSION_MAX_AGE_SECONDS * 1000
+    );
 
     const session = await prisma.session.create({
       data: {
@@ -52,7 +58,9 @@ export async function POST(request: Request) {
       sessionId: session.id,
     };
 
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "15m" });
+    const token = jwt.sign(payload, JWT_SECRET, {
+      expiresIn: AUTH_ACCESS_TOKEN_EXPIRES_IN_SECONDS,
+    });
 
     const userWithoutPassword = {
       id: user.id,
@@ -70,6 +78,8 @@ export async function POST(request: Request) {
       user: userWithoutPassword,
       token,
       refreshToken,
+      accessTokenExpiresInSeconds: AUTH_ACCESS_TOKEN_EXPIRES_IN_SECONDS,
+      sessionMaxAgeSeconds: AUTH_SESSION_MAX_AGE_SECONDS,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
