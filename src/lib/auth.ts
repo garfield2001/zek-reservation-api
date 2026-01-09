@@ -1,31 +1,18 @@
 import jwt from "jsonwebtoken";
 import prisma from "./prisma";
+import { AuthUser } from "@/types/types";
+import { AuthError } from "@/errors/authErros";
 
 const JWT_SECRET = process.env.JWT_SECRET || "zek-secret-123";
 
 export const AUTH_SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60; // 7 Days
 export const AUTH_ACCESS_TOKEN_EXPIRES_IN_SECONDS = 15 * 60; // 15 mins
 
-export type AuthUser = {
-  id: number;
-  role: "ADMIN" | "STAFF";
-  sessionId: number;
-};
-
-export class AuthError extends Error {
-  status: number;
-
-  constructor(message: string, status: number) {
-    super(message);
-    this.status = status;
-  }
-}
-
 export async function getAuthUser(request: Request): Promise<AuthUser> {
   const authHeader = request.headers.get("authorization");
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    throw new AuthError("Unauthorized", 401);
+    throw new AuthError("Unauthorized", 401, "UNAUTHORIZED");
   }
 
   const token = authHeader.split(" ")[1];
@@ -37,7 +24,7 @@ export async function getAuthUser(request: Request): Promise<AuthUser> {
     };
 
     if (typeof decoded.sessionId !== "number") {
-      throw new AuthError("Invalid token", 401);
+      throw new AuthError("Invalid token", 401, "INVALID_TOKEN");
     }
 
     const session = await prisma.session.findUnique({
@@ -56,7 +43,7 @@ export async function getAuthUser(request: Request): Promise<AuthUser> {
       session.revokedAt !== null ||
       session.expiresAt <= new Date()
     ) {
-      throw new AuthError("Invalid token", 401);
+      throw new AuthError("Invalid token", 401, "INVALID_TOKEN");
     }
 
     const user = await prisma.user.findUnique({
@@ -68,7 +55,7 @@ export async function getAuthUser(request: Request): Promise<AuthUser> {
     });
 
     if (!user) {
-      throw new AuthError("User not found", 404);
+      throw new AuthError("User not found", 404, "USER_NOT_FOUND");
     }
 
     return {
@@ -81,7 +68,7 @@ export async function getAuthUser(request: Request): Promise<AuthUser> {
       throw error;
     }
 
-    throw new AuthError("Invalid token", 401);
+    throw new AuthError("Invalid token", 401, "INVALID_TOKEN");
   }
 }
 
