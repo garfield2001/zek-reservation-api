@@ -9,14 +9,12 @@ datasource db {
 
 enum Role {
   ADMIN
+  SEMI_ADMIN
   STAFF
 }
 
 enum PermissionResource {
   RESERVATION
-  CUSTOMER
-  PAYMENT
-  REPORT
 }
 
 enum PermissionAction {
@@ -34,7 +32,7 @@ model User {
   email       String       @unique
   phoneNumber String
   password    String
-  role        Role         @default(STAFF)
+  role        Role         @default(SEMI_ADMIN)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   permissions Permission[]

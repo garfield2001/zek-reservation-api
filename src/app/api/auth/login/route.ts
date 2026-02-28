@@ -10,6 +10,7 @@ export async function POST(request: Request) {
     const body = loginSchema.parse(json);
 
     const result = await login(body.username, body.password);
+
     return NextResponse.json(result);
   } catch (error) {
     if (error instanceof z.ZodError) {

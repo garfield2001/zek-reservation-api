@@ -4,12 +4,12 @@ import {
   AUTH_ACCESS_TOKEN_EXPIRES_IN_SECONDS,
   AUTH_SESSION_MAX_AGE_SECONDS,
 } from "@/lib/auth";
-import { PublicUser, AuthTokensResult } from "@/types/types";
+import { PublicUser, AuthTokensResult, AuthUser } from "@/types/types";
 
 export type AuthTokenPayload = {
   userId: number;
   email: string;
-  role: "ADMIN" | "STAFF";
+  role: AuthUser["role"];
   sessionId: number;
 };
 

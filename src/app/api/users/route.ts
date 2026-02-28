@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { userCreateSchema } from "@/lib/validations/user";
 import { z } from "zod";
 import { getAuthUser } from "@/lib/auth";
-import { CreateUserInput, createUser, listUsers } from "@/services/userService";
+import { createUser, listUsers } from "@/services/userService";
+import { CreateUserInput } from "@/types/types";
 import { handleRouteError } from "@/lib/routeError";
 
 export async function POST(request: Request) {
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   try {
     const authUser = await getAuthUser(request);
+
     if (authUser.role !== "ADMIN") {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }

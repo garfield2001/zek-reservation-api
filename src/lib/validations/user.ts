@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { Role } from "@prisma/client";
 
 export const userCreateSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -7,7 +8,7 @@ export const userCreateSchema = z.object({
   email: z.email({ message: "Invalid email address" }),
   phoneNumber: z.string().min(1, "Phone number is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  role: z.enum(["ADMIN", "STAFF"]).default("STAFF"),
+  role: z.nativeEnum(Role).default(Role.SEMI_ADMIN),
 });
 
 export const userUpdateSchema = z
@@ -24,7 +25,7 @@ export const userUpdateSchema = z
       .string()
       .min(6, "Password must be at least 6 characters")
       .optional(),
-    role: z.enum(["ADMIN", "STAFF"]).optional(),
+    role: z.nativeEnum(Role).optional(),
   })
   .refine(
     (data) =>

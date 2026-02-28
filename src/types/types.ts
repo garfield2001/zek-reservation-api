@@ -1,4 +1,10 @@
-import { PermissionAction, PermissionResource } from "@prisma/client";
+import {
+  PermissionAction,
+  PermissionResource,
+  Role as PrismaRole,
+} from "@prisma/client";
+
+export type UserRole = PrismaRole;
 
 export type CreateUserData = {
   firstName: string;
@@ -7,7 +13,7 @@ export type CreateUserData = {
   email: string;
   phoneNumber: string;
   password: string;
-  role: "ADMIN" | "STAFF";
+  role: UserRole;
 };
 
 export type UserRecord = {
@@ -18,7 +24,7 @@ export type UserRecord = {
   email: string;
   phoneNumber: string;
   password: string;
-  role: "ADMIN" | "STAFF";
+  role: UserRole;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -30,7 +36,7 @@ export type UpdateUserData = {
   email?: string;
   phoneNumber?: string;
   password?: string;
-  role?: "ADMIN" | "STAFF";
+  role?: UserRole;
 };
 
 export type PublicUser = {
@@ -40,7 +46,7 @@ export type PublicUser = {
   username: string;
   email: string;
   phoneNumber: string;
-  role: "ADMIN" | "STAFF";
+  role: UserRole;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -52,7 +58,7 @@ export type CreateUserInput = {
   email: string;
   phoneNumber: string;
   password: string;
-  role: "ADMIN" | "STAFF";
+  role: UserRole;
 };
 
 export type UpdateUserInput = {
@@ -62,12 +68,12 @@ export type UpdateUserInput = {
   email?: string;
   phoneNumber?: string;
   password?: string;
-  role?: "ADMIN" | "STAFF";
+  role?: UserRole;
 };
 
 export type AuthUser = {
   id: number;
-  role: "ADMIN" | "STAFF";
+  role: UserRole;
   sessionId: number;
 };
 
@@ -92,7 +98,7 @@ export type SessionWithUser = {
     username: string;
     email: string;
     phoneNumber: string;
-    role: "ADMIN" | "STAFF";
+    role: UserRole;
     createdAt: Date;
     updatedAt: Date;
   };

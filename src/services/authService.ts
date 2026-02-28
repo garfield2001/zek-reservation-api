@@ -27,7 +27,7 @@ export interface AuthService {
 
 export function createAuthService(
   sessionRepository: SessionRepository,
-  userRepository: UserRepository
+  userRepository: UserRepository,
 ): AuthService {
   return {
     async login(username, password) {
@@ -45,7 +45,7 @@ export function createAuthService(
 
       const refreshToken = randomUUID();
       const sessionExpiresAt = new Date(
-        Date.now() + AUTH_SESSION_MAX_AGE_SECONDS * 1000
+        Date.now() + AUTH_SESSION_MAX_AGE_SECONDS * 1000,
       );
 
       const session = await sessionRepository.create({
@@ -83,7 +83,7 @@ export function createAuthService(
 
       const updatedSession = await sessionRepository.updateRefreshToken(
         session.id,
-        newRefreshToken
+        newRefreshToken,
       );
 
       const payload: AuthTokenPayload = {
@@ -100,7 +100,7 @@ export function createAuthService(
       return createAuthTokensResult(
         userWithoutPassword,
         token,
-        newRefreshToken
+        newRefreshToken,
       );
     },
 
@@ -122,10 +122,11 @@ export function createAuthService(
 
 const defaultAuthService = createAuthService(
   prismaSessionRepository,
-  prismaUserRepository
+  prismaUserRepository,
 );
 
 export const login = defaultAuthService.login.bind(defaultAuthService);
+
 export const refreshSession =
   defaultAuthService.refreshSession.bind(defaultAuthService);
 export const getCurrentUser =
